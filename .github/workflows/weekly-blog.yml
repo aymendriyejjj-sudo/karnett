@@ -11,7 +11,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   generate-article:
@@ -30,21 +29,11 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/generate_article.py
 
-      - name: Créer une Pull Request pour relecture
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: "Blog automatique : nouvel article de la semaine"
-          branch: blog-auto-${{ github.run_number }}
-          title: "🤖 Nouvel article de blog généré automatiquement"
-          body: |
-            Cet article a été généré automatiquement par le script hebdomadaire.
-
-            **Avant de fusionner (merge) cette Pull Request :**
-            1. Clique sur l'onglet "Files changed" pour relire l'article généré
-            2. Vérifie qu'il n'y a pas d'erreur sur les tarifs, les villes ou le ton
-            3. Netlify a normalement généré un aperçu (deploy preview) — cherche le lien
-               dans les commentaires de cette Pull Request pour voir le rendu visuel réel
-            4. Si tout est bon, clique "Merge pull request" → l'article passe en ligne automatiquement
-            5. Si quelque chose ne va pas, tu peux éditer directement le fichier HTML dans
-               cette Pull Request avant de merger, ou fermer la Pull Request sans la fusionner
-          labels: blog-automatique
+      - name: Publier directement en ligne
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --staged --quiet && echo "Rien à publier" && exit 0
+          git commit -m "Blog automatique : nouvel article publié sans relecture"
+          git push
