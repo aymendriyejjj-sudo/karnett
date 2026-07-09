@@ -1,33 +1,27 @@
 name: Génération automatique d'article de blog
-
 on:
   schedule:
     # Tous les lundis et jeudis à 7h00 UTC (8h/9h heure de Paris selon saison)
-    - cron: '41 11 * * *'
+    - cron: '52 11 * * *'
   workflow_dispatch: {}
     # Permet aussi de le lancer manuellement depuis l'onglet "Actions" sur GitHub,
     # utile pour tester sans attendre le prochain lundi/jeudi.
-
 permissions:
   contents: write
-
 jobs:
   generate-article:
     runs-on: ubuntu-latest
     steps:
       - name: Récupérer le code
         uses: actions/checkout@v4
-
       - name: Installer Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: Générer le nouvel article
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/generate_article.py
-
       - name: Publier directement en ligne
         run: |
           git config user.name "github-actions[bot]"
