@@ -49,6 +49,16 @@ CITY_SLUGS = {
     "Bray-sur-Seine": "nettoyage-voiture-bray-sur-seine",
 }
 
+FRENCH_MONTHS = [
+    "janvier", "février", "mars", "avril", "mai", "juin",
+    "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+]
+
+
+def format_date_fr(d):
+    """Formate une date en français lisible : 9 juillet 2026"""
+    return f"{d.day} {FRENCH_MONTHS[d.month - 1]} {d.year}"
+
 
 def slugify(text):
     text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
@@ -152,7 +162,8 @@ def build_article_html(slug, article):
     title = f"{article['title']} | Blog Karnett"
     description = article["meta_description"]
     og_image = f"{BASE}/images/avant-apres-1.webp"
-    today = date.today().isoformat()
+    today_iso = date.today().isoformat()
+    today_fr = format_date_fr(date.today())
 
     city_links = ""
     for city in article.get("cities", [])[:2]:
@@ -170,6 +181,7 @@ def build_article_html(slug, article):
   <article class="page-hero wrap">
     <div class="eyebrow">Blog Karnett</div>
     <h1>{article['title']}</h1>
+    <p class="article-date">Publié le <time datetime="{today_iso}">{today_fr}</time> · <span class="article-date-relative" data-published="{today_iso}">à l'instant</span></p>
     <p class="lead">{article['excerpt']}</p>
   </article>
 
@@ -234,8 +246,8 @@ def build_article_html(slug, article):
       "headline": {json.dumps(article['title'], ensure_ascii=False)},
       "description": {json.dumps(description, ensure_ascii=False)},
       "image": "{og_image}",
-      "datePublished": "{today}",
-      "dateModified": "{today}",
+      "datePublished": "{today_iso}",
+      "dateModified": "{today_iso}",
       "author": {{"@type":"Organization","name":"Karnett"}},
       "publisher": {{"@type":"Organization","name":"Karnett","logo":{{"@type":"ImageObject","url":"{BASE}/images/karnett-icon.svg"}}}},
       "mainEntityOfPage": "{canonical}"
@@ -247,7 +259,34 @@ def build_article_html(slug, article):
   ]
 }}"""
 
-    extra_js = "document.getElementById('waCtaBtn').href = waLink(msgGeneric);\n  document.getElementById('waFinalBtn').href = waLink(msgGeneric);"
+    relative_date_js = """
+  document.querySelectorAll('.article-date-relative').forEach(function (el) {
+    var published = new Date(el.getAttribute('data-published'));
+    var now = new Date();
+    var diffDays = Math.floor((now - published) / (1000 * 60 * 60 * 24));
+    var text;
+    if (diffDays <= 0) {
+      text = "publié aujourd'hui";
+    } else if (diffDays === 1) {
+      text = "il y a 1 jour";
+    } else if (diffDays < 30) {
+      text = "il y a " + diffDays + " jours";
+    } else if (diffDays < 365) {
+      var months = Math.floor(diffDays / 30);
+      text = "il y a " + months + (months === 1 ? " mois" : " mois");
+    } else {
+      var years = Math.floor(diffDays / 365);
+      text = "il y a " + years + (years === 1 ? " an" : " ans");
+    }
+    el.textContent = text;
+  });
+"""
+
+    extra_js = (
+        "document.getElementById('waCtaBtn').href = waLink(msgGeneric);\n"
+        "  document.getElementById('waFinalBtn').href = waLink(msgGeneric);\n"
+        + relative_date_js
+    )
 
     return page_shell("../", title, description, canonical, og_image, body, schema, extra_js=extra_js)
 
