@@ -1,35 +1,75 @@
 name: Génération automatique d'article de blog
+
 on:
   schedule:
-    # Tous les lundis et jeudis à 7h00 UTC (8h/9h heure de Paris selon saison)
+    # Tous les lundis et jeudis à 7h00 UTC
     - cron: '0 7 * * 1'
     - cron: '0 7 * * 4'
+
+  # Lancement manuel
   workflow_dispatch: {}
+
+  # Déclenchement de secours par cron-job.org
   repository_dispatch:
     types: [blog-trigger]
-    # Permet à cron-job.org de déclencher ce workflow via l'API GitHub,
-    # en filet de sécurité si le schedule interne de GitHub est en retard.
+
 permissions:
   contents: write
+
+concurrency:
+  group: karnett-blog
+  cancel-in-progress: false
+
 jobs:
   generate-article:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Récupérer le code
+      - name: Récupérer le dépôt
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Vérifier si un article a déjà été publié aujourd'hui
+        id: check
+        shell: bash
+        run: |
+          TODAY=$(date -u +"%Y-%m-%d")
+
+          if git log \
+            --since="${TODAY} 00:00:00" \
+            --until="${TODAY} 23:59:59" \
+            --grep="Blog automatique : nouvel article publié sans relecture" \
+            --format="%H" | grep -q .; then
+              echo "already=true" >> "$GITHUB_OUTPUT"
+          else
+              echo "already=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Arrêt si un article existe déjà
+        if: steps.check.outputs.already == 'true'
+        run: |
+          echo "Un article a déjà été publié aujourd'hui."
+          exit 0
+
       - name: Installer Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Générer le nouvel article
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/generate_article.py
+
       - name: Publier directement en ligne
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
           git add -A
+
           git diff --staged --quiet && echo "Rien à publier" && exit 0
+
           git commit -m "Blog automatique : nouvel article publié sans relecture"
           git push
