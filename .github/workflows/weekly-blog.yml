@@ -2,16 +2,11 @@ name: Génération automatique d'article de blog
 
 on:
   schedule:
-    # Tous les lundis et jeudis à 7h00 UTC
-    - cron: '0 7 * * 1'
-    - cron: '0 7 * * 4'
+    # Un article le lundi et le jeudi à 7 h UTC
+    - cron: "0 7 * * 1,4"
 
-  # Lancement manuel
+  # Permet un lancement manuel depuis GitHub Actions
   workflow_dispatch: {}
-
-  # Déclenchement de secours par cron-job.org
-  repository_dispatch:
-    types: [blog-trigger]
 
 permissions:
   contents: write
@@ -41,35 +36,38 @@ jobs:
             --until="${TODAY} 23:59:59" \
             --grep="Blog automatique : nouvel article publié sans relecture" \
             --format="%H" | grep -q .; then
-              echo "already=true" >> "$GITHUB_OUTPUT"
+            echo "already=true" >> "$GITHUB_OUTPUT"
+            echo "Un article a déjà été publié aujourd'hui."
           else
-              echo "already=false" >> "$GITHUB_OUTPUT"
+            echo "already=false" >> "$GITHUB_OUTPUT"
+            echo "Aucun article publié aujourd'hui."
           fi
 
-      - name: Arrêt si un article existe déjà
-        if: steps.check.outputs.already == 'true'
-        run: |
-          echo "Un article a déjà été publié aujourd'hui."
-          exit 0
-
       - name: Installer Python
+        if: steps.check.outputs.already == 'false'
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Générer le nouvel article
+        if: steps.check.outputs.already == 'false'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/generate_article.py
 
       - name: Publier directement en ligne
+        if: steps.check.outputs.already == 'false'
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git add -A
 
-          git diff --staged --quiet && echo "Rien à publier" && exit 0
+          if git diff --staged --quiet; then
+            echo "Rien à publier"
+            exit 0
+          fi
 
           git commit -m "Blog automatique : nouvel article publié sans relecture"
           git push
