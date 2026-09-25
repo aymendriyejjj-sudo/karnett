@@ -113,13 +113,21 @@ Premium (79€, avec shampouinage des sièges).
 
 Ton : professionnel, direct, jamais survendeur. Phrases courtes. Pas de remplissage.
 Longueur du corps de l'article : 500 à 700 mots, en français.
+Réponds à la question du titre dès l'introduction avec des gestes concrets et leurs limites.
+N'invente jamais d'avis clients, de tests, de résultats garantis, de données chiffrées,
+de sources externes ou de prestations non décrites ci-dessus. N'affirme pas que
+toutes les taches ou odeurs peuvent être éliminées. En cas d'odeur d'essence,
+de fuite ou de suspicion de danger mécanique, oriente d'abord vers un professionnel
+de l'automobile et ne présente pas le nettoyage comme une réparation.
+Mentionne le service à domicile et les villes uniquement si cela aide le lecteur ;
+évite les répétitions artificielles de mots-clés ou de noms de communes.
 Structure : un court paragraphe d'intro, puis 3 à 5 sections avec des titres H2,
 puis une FAQ de 3 questions/réponses courtes.
 Choisis 2 villes parmi cette liste pour les liens internes (les plus pertinentes pour le sujet) : {", ".join(city_names)}.
 
 Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant/après, sans balises markdown, au format exact :
 {{
-  "title": "titre H1 accrocheur, 50-65 caractères",
+  "title": "titre H1 clair et spécifique, 45-60 caractères",
   "meta_description": "meta description SEO, 140-160 caractères",
   "excerpt": "résumé d'1 phrase pour la liste du blog",
   "body_html": "le corps de l'article en HTML : des balises <h2>, <p>, <ul><li> uniquement, PAS de <html>/<head>/<body>, PAS de <h1>",
@@ -159,7 +167,7 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant/après, sans bal
 
 def build_article_html(slug, article):
     canonical = f"{BASE}/blog/{slug}.html"
-    title = f"{article['title']} | Blog Karnett"
+    title = article["title"]
     description = article["meta_description"]
     og_image = f"{BASE}/images/avant-apres-1.webp"
     today_iso = date.today().isoformat()
