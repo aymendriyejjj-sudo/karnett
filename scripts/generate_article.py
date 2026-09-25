@@ -18,7 +18,6 @@ import re
 import sys
 import unicodedata
 import urllib.request
-from html.parser import HTMLParser
 from datetime import date
 from urllib.parse import unquote, urlsplit
 
@@ -53,41 +52,42 @@ CITY_SLUGS = {
 }
 
 
-class InternalLinkParser(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.hrefs = []
+def repair_internal_links(html):
+    """Repair known city links; remove an invalid anchor without losing its text."""
+    aliases = {f"/nettoyage-auto-{slug}": f"/{target}.html"
+               for slug, target in ((value.removeprefix("nettoyage-voiture-"), value)
+                                    for value in CITY_SLUGS.values())}
+    aliases.update({f"/{city.lower()}": f"/{slug}.html"
+                    for city, slug in CITY_SLUGS.items() if city.isascii()})
+    anchor = re.compile(r'<a\b[^>]*\bhref\s*=\s*(["\'])(.*?)\1[^>]*>(.*?)</a>', re.I | re.S)
 
-    def handle_starttag(self, tag, attrs):
-        if tag == "a":
-            self.hrefs.extend(value for name, value in attrs if name == "href" and value)
-
-
-def validate_internal_links(html):
-    """Reject generated links that do not resolve to a published local HTML file."""
-    parser = InternalLinkParser()
-    parser.feed(html)
-    missing = []
-    for href in parser.hrefs:
+    def replace(match):
+        href = match.group(2)
         parsed = urlsplit(href)
         if parsed.netloc and parsed.netloc not in ("karnett.fr", "www.karnett.fr"):
-            continue
+            return match.group(0)
         if parsed.scheme and parsed.scheme not in ("http", "https"):
-            continue
+            return match.group(0)
         path = unquote(parsed.path)
         if not path or path == "/":
-            continue
-        if not path.startswith("/"):
-            path = "/blog/" + path
-        target = os.path.join(REPO_ROOT, path.lstrip("/"))
-        if path.endswith("/"):
-            target = os.path.join(target, "index.html")
-        elif not os.path.splitext(target)[1]:
-            target += ".html"
-        if not os.path.isfile(target):
-            missing.append(href)
-    if missing:
-        raise ValueError(f"Liens internes introuvables dans l'article : {missing}")
+            return match.group(0)
+        fixed = aliases.get(path)
+        if fixed is None:
+            local_path = path if path.startswith("/") else "/blog/" + path
+            target = os.path.join(REPO_ROOT, local_path.lstrip("/"))
+            if local_path.endswith("/"):
+                target = os.path.join(target, "index.html")
+            elif not os.path.splitext(target)[1]:
+                target += ".html"
+            if os.path.isfile(target):
+                return match.group(0)
+            print(f"Lien interne inexistant retiré : {href}")
+            return match.group(3)
+        print(f"Lien interne corrigé : {href} -> {fixed}")
+        suffix = ("?" + parsed.query if parsed.query else "") + ("#" + parsed.fragment if parsed.fragment else "")
+        return match.group(0).replace(href, fixed + suffix, 1)
+
+    return anchor.sub(replace, html)
 
 FRENCH_MONTHS = [
     "janvier", "février", "mars", "avril", "mai", "juin",
@@ -215,7 +215,7 @@ def build_article_html(slug, article):
     today_iso = date.today().isoformat()
     today_fr = format_date_fr(date.today())
 
-    validate_internal_links(article["body_html"])
+    article["body_html"] = repair_internal_links(article["body_html"])
 
     city_links = ""
     for city in article.get("cities", [])[:2]:
