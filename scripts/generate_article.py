@@ -18,7 +18,9 @@ import re
 import sys
 import unicodedata
 import urllib.request
+from html.parser import HTMLParser
 from datetime import date
+from urllib.parse import unquote, urlsplit
 
 sys.path.insert(0, os.path.dirname(__file__))
 from blog_template import page_shell, BASE
@@ -29,6 +31,7 @@ PUBLISHED_TRACK = os.path.join(REPO_ROOT, "blog", "_published_ideas.json")
 SITEMAP_FILE = os.path.join(REPO_ROOT, "sitemap.xml")
 BLOG_INDEX_FILE = os.path.join(REPO_ROOT, "blog", "index.html")
 BLOG_DIR = os.path.join(REPO_ROOT, "blog")
+REDIRECTS_FILE = os.path.join(REPO_ROOT, "_redirects")
 
 # Villes disponibles pour le maillage interne (doit rester cohérent avec city_data.py)
 CITY_SLUGS = {
@@ -48,6 +51,43 @@ CITY_SLUGS = {
     "Nangis": "nettoyage-voiture-nangis",
     "Bray-sur-Seine": "nettoyage-voiture-bray-sur-seine",
 }
+
+
+class InternalLinkParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.hrefs = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a":
+            self.hrefs.extend(value for name, value in attrs if name == "href" and value)
+
+
+def validate_internal_links(html):
+    """Reject generated links that do not resolve to a published local HTML file."""
+    parser = InternalLinkParser()
+    parser.feed(html)
+    missing = []
+    for href in parser.hrefs:
+        parsed = urlsplit(href)
+        if parsed.netloc and parsed.netloc not in ("karnett.fr", "www.karnett.fr"):
+            continue
+        if parsed.scheme and parsed.scheme not in ("http", "https"):
+            continue
+        path = unquote(parsed.path)
+        if not path or path == "/":
+            continue
+        if not path.startswith("/"):
+            path = "/blog/" + path
+        target = os.path.join(REPO_ROOT, path.lstrip("/"))
+        if path.endswith("/"):
+            target = os.path.join(target, "index.html")
+        elif not os.path.splitext(target)[1]:
+            target += ".html"
+        if not os.path.isfile(target):
+            missing.append(href)
+    if missing:
+        raise ValueError(f"Liens internes introuvables dans l'article : {missing}")
 
 FRENCH_MONTHS = [
     "janvier", "février", "mars", "avril", "mai", "juin",
@@ -121,6 +161,8 @@ de fuite ou de suspicion de danger mécanique, oriente d'abord vers un professio
 de l'automobile et ne présente pas le nettoyage comme une réparation.
 Mentionne le service à domicile et les villes uniquement si cela aide le lecteur ;
 évite les répétitions artificielles de mots-clés ou de noms de communes.
+Dans body_html, n'invente aucun lien interne : pour les villes, utilise
+uniquement /nettoyage-voiture-<slug>.html parmi les villes proposées.
 Structure : un court paragraphe d'intro, puis 3 à 5 sections avec des titres H2,
 puis une FAQ de 3 questions/réponses courtes.
 Choisis 2 villes parmi cette liste pour les liens internes (les plus pertinentes pour le sujet) : {", ".join(city_names)}.
@@ -172,6 +214,8 @@ def build_article_html(slug, article):
     og_image = f"{BASE}/images/avant-apres-1.webp"
     today_iso = date.today().isoformat()
     today_fr = format_date_fr(date.today())
+
+    validate_internal_links(article["body_html"])
 
     city_links = ""
     for city in article.get("cities", [])[:2]:
@@ -256,8 +300,8 @@ def build_article_html(slug, article):
       "image": "{og_image}",
       "datePublished": "{today_iso}",
       "dateModified": "{today_iso}",
-      "author": {{"@type":"Organization","name":"Karnett"}},
-      "publisher": {{"@type":"Organization","name":"Karnett","logo":{{"@type":"ImageObject","url":"{BASE}/images/karnett-icon.svg"}}}},
+      "author": {{"@id":"{BASE}/#organization"}},
+      "publisher": {{"@type":"Organization","@id":"{BASE}/#organization","name":"Karnett","url":"{BASE}/","logo":{{"@type":"ImageObject","url":"{BASE}/images/karnett-icon.svg"}}}},
       "mainEntityOfPage": "{canonical}"
     }},
     {{
@@ -336,6 +380,16 @@ def update_blog_index(slug, article):
         f.write(content)
 
 
+def update_redirects(slug):
+    """Redirect Netlify's extensionless article alias to its canonical HTML URL."""
+    rule = f"/blog/{slug} /blog/{slug}.html 301!\n"
+    with open(REDIRECTS_FILE, encoding="utf-8") as f:
+        content = f.read()
+    if rule not in content:
+        with open(REDIRECTS_FILE, "a", encoding="utf-8") as f:
+            f.write(rule)
+
+
 def main():
     idea = pick_next_idea()
     if idea is None:
@@ -358,6 +412,7 @@ def main():
 
     update_sitemap(slug)
     update_blog_index(slug, article)
+    update_redirects(slug)
 
     published = load_published()
     published.append(idea)
