@@ -19,4 +19,4 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
-Sitemap: https://www.karnett.fr/sitemap.xml
+Sitemap: https://karnett.fr/sitemap.xml

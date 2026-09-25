@@ -301,6 +301,14 @@ def update_sitemap(slug):
     <priority>0.6</priority>
   </url>
 </urlset>"""
+    # The blog listing changes whenever a new article is published.
+    content, updated = re.subn(
+        r"(<loc>https://karnett\.fr/blog/</loc>\s*<lastmod>)\d{4}-\d{2}-\d{2}(</lastmod>)",
+        lambda match: match.group(1) + date.today().isoformat() + match.group(2),
+        content,
+    )
+    if updated != 1:
+        raise ValueError("Blog index entry missing or duplicated in sitemap.xml")
     content = content.replace("</urlset>", new_entry)
     with open(SITEMAP_FILE, "w", encoding="utf-8") as f:
         f.write(content)
