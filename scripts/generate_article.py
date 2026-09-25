@@ -314,7 +314,7 @@ def update_blog_index(slug, article):
           <h3>{article['title']}</h3>
           <p>{article['excerpt']}</p>
         </a>"""
-    marker = '<div class="article-list reveal">'
+    marker = '<div class="article-list">'
     content = content.replace(marker, marker + "\n        " + new_card, 1)
     with open(BLOG_INDEX_FILE, "w", encoding="utf-8") as f:
         f.write(content)
