@@ -7,9 +7,8 @@ Génère automatiquement un nouvel article de blog Karnett :
 4. Met à jour sitemap.xml et blog/index.html
 5. Marque l'idée comme publiée dans blog/_published_ideas.json
 
-Ce script est appelé automatiquement chaque semaine par GitHub Actions.
-Il ne pousse jamais directement sur main : le workflow l'exécute sur une branche
-à part et ouvre une Pull Request, pour permettre une relecture avant mise en ligne.
+Ce script est appelé automatiquement par GitHub Actions les jours de publication.
+Le workflow pousse l'article sur main après génération.
 """
 
 import json
