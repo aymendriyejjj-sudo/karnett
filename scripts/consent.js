@@ -22,6 +22,23 @@
     script.src = 'https://www.googletagmanager.com/gtag/js?id=' + ID;
     document.head.appendChild(script);
   }
+  function trackContactClicks() {
+    document.addEventListener('click', function (event) {
+      var link = event.target.closest && event.target.closest('a[href]');
+      if (!link || !loaded || readChoice() !== 'yes') return;
+      var url;
+      try { url = new URL(link.href, location.href); } catch (_) { return; }
+      var method = null;
+      if (url.protocol === 'tel:') method = 'telephone';
+      else if (url.hostname === 'wa.me' || url.hostname === 'api.whatsapp.com') method = 'whatsapp';
+      if (method && typeof window.gtag === 'function') {
+        window.gtag('event', 'contact_click', {
+          contact_method: method,
+          send_to: ID
+        });
+      }
+    });
+  }
   function removeAnalyticsCookies() {
     document.cookie.split(';').forEach(function (part) {
       var name = part.trim().split('=')[0];
@@ -35,6 +52,7 @@
     });
   }
   function init() {
+    trackContactClicks();
     var banner = document.createElement('section');
     banner.className = 'karnett-consent';
     banner.setAttribute('aria-label', 'Choix des cookies');
