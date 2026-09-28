@@ -1,0 +1,11 @@
+.karnett-consent[hidden] { display: none; }
+.karnett-consent { position: fixed; z-index: 9999; bottom: 0; left: 0; right: 0; background: #111; color: #fff; box-shadow: 0 -4px 25px #0006; font: 15px/1.5 Arial, sans-serif; }
+.karnett-consent-inner { max-width: 1100px; margin: auto; padding: 18px 20px; display: flex; gap: 25px; align-items: center; justify-content: space-between; }
+.karnett-consent p { margin: 0; }
+.karnett-consent a { color: #fff; text-decoration: underline; }
+.karnett-consent-actions { display: flex; flex-shrink: 0; gap: 10px; }
+.karnett-consent-actions button { cursor: pointer; border: 1px solid #fff; border-radius: 6px; background: transparent; color: #fff; padding: 10px 16px; font: inherit; }
+.karnett-consent-actions button[data-consent="yes"] { background: #fff; color: #111; }
+.karnett-consent-actions button:focus-visible, .karnett-consent-settings:focus-visible { outline: 3px solid #f5b942; outline-offset: 3px; }
+.karnett-consent-settings { display: block; margin: 14px auto; border: 0; background: transparent; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; }
+@media (max-width: 650px) { .karnett-consent-inner { display: block; } .karnett-consent-actions { margin-top: 14px; } .karnett-consent-actions button { flex: 1; } }

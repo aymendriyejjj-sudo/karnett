@@ -75,7 +75,7 @@ FOOTER = """<footer>
 
     <p class="footer-legal">
       <strong>Mentions légales</strong> — Karnett, entreprise individuelle (auto-entrepreneur). Basé à Montereau-Fault-Yonne (77130). Contact : 07 82 10 73 03. Directeur de la publication : le gérant de Karnett. Hébergement : Netlify, Inc., 512 2nd Street, San Francisco, CA 94107, USA. SIRET : à compléter.<br>
-      <strong>Confidentialité</strong> — Les informations que vous transmettez via WhatsApp ou par téléphone sont utilisées uniquement pour répondre à votre demande de devis et organiser la prestation. Elles ne sont ni revendues ni transmises à des tiers. Vous pouvez demander leur suppression à tout moment.
+      <strong>Confidentialité</strong> — Les informations que vous transmettez via WhatsApp ou par téléphone sont utilisées uniquement pour répondre à votre demande de devis et organiser la prestation. Pour la mesure d’audience facultative, consultez notre <a href="/confidentialite.html">politique de confidentialité</a>. Vous pouvez demander la suppression des informations transmises à Karnett à tout moment.
     </p>
 
     <div class="footer-bottom">
@@ -141,6 +141,7 @@ def page_shell(root, title, description, canonical, og_image, body_html, schema_
 <script type="application/ld+json">
 {schema_json}
 </script>
+<link rel="stylesheet" href="/css/consent.css">
 </head>
 <body>
 {HEADER_NAV.format(root=root)}
@@ -149,6 +150,7 @@ def page_shell(root, title, description, canonical, og_image, body_html, schema_
 </main>
 {FOOTER.format(root=root)}
 {SCRIPT.format(wa=WA_NUMBER, msg_generic=wa_msg, extra_js=extra_js)}
+<script src="/scripts/consent.js" defer></script>
 </body>
 </html>
 """
