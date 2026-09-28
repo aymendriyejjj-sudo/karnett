@@ -2,8 +2,14 @@ name: Génération automatique d'article de blog
 
 on:
   schedule:
-    # Un article le lundi et le jeudi à 7 h UTC
-    - cron: "0 7 * * 1,4"
+    # Plusieurs occasions de rattrapage, hors début d'heure (GitHub peut retarder ou sauter un créneau).
+    - cron: "17 7,12,16 * * 1,4"
+    - cron: "17 8 * * 2,5"
+
+  # Une modification de ce workflow sur main lance aussi le contrôle de rattrapage.
+  push:
+    branches: [main]
+    paths: ['.github/workflows/weekly-blog.yml']
 
   # Permet un lancement manuel depuis GitHub Actions
   workflow_dispatch: {}
@@ -25,22 +31,39 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Vérifier si un article a déjà été publié aujourd'hui
+      - name: Déterminer le créneau et éviter les doublons
         id: check
         shell: bash
         run: |
-          TODAY=$(date -u +"%Y-%m-%d")
-
+          SLOT_START=$(python - <<'PY'
+          from datetime import datetime, time, timedelta, timezone
+          from zoneinfo import ZoneInfo
+          now = datetime.now(ZoneInfo('Europe/Paris'))
+          day = now.weekday()
+          if day in (0, 1):
+              start = now.date() - timedelta(days=day)
+          elif day in (3, 4):
+              start = now.date() - timedelta(days=day - 3)
+          else:
+              print('')
+              raise SystemExit
+          print(datetime.combine(start, time.min, ZoneInfo('Europe/Paris')).astimezone(timezone.utc).isoformat())
+          PY
+          )
+          if [ -z "$SLOT_START" ]; then
+            echo "already=true" >> "$GITHUB_OUTPUT"
+            echo "Hors créneau de publication."
+            exit 0
+          fi
           if git log \
-            --since="${TODAY} 00:00:00" \
-            --until="${TODAY} 23:59:59" \
+            --since="$SLOT_START" \
             --grep="Blog automatique : nouvel article publié sans relecture" \
             --format="%H" | grep -q .; then
             echo "already=true" >> "$GITHUB_OUTPUT"
-            echo "Un article a déjà été publié aujourd'hui."
+            echo "L'article de ce créneau a déjà été publié."
           else
             echo "already=false" >> "$GITHUB_OUTPUT"
-            echo "Aucun article publié aujourd'hui."
+            echo "Publication manquante pour ce créneau : génération."
           fi
 
       - name: Installer Python
