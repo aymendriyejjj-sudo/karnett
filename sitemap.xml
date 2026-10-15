@@ -104,7 +104,7 @@
   </url>
   <url>
     <loc>https://karnett.fr/blog/</loc>
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-10-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -346,6 +346,12 @@
   <url>
     <loc>https://karnett.fr/blog/enlever-l-odeur-de-tabac-en-voiture-combien-de-temps.html</loc>
     <lastmod>2026-10-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://karnett.fr/blog/comment-enlever-les-poils-de-chien-dans-une-voiture.html</loc>
+    <lastmod>2026-10-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
