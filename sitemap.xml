@@ -104,7 +104,7 @@
   </url>
   <url>
     <loc>https://karnett.fr/blog/</loc>
-    <lastmod>2026-10-19</lastmod>
+    <lastmod>2026-10-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -358,6 +358,12 @@
   <url>
     <loc>https://karnett.fr/blog/poils-de-chat-dans-les-sieges-comment-s-en-debarrasser.html</loc>
     <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://karnett.fr/blog/poils-d-animaux-dans-la-voiture-pourquoi-c-est-si-tenace.html</loc>
+    <lastmod>2026-10-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
