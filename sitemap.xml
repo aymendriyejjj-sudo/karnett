@@ -104,7 +104,7 @@
   </url>
   <url>
     <loc>https://karnett.fr/blog/</loc>
-    <lastmod>2026-10-26</lastmod>
+    <lastmod>2026-10-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -370,6 +370,12 @@
   <url>
     <loc>https://karnett.fr/blog/retirer-les-poils-de-chien-sur-un-siege-de-voiture.html</loc>
     <lastmod>2026-10-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://karnett.fr/blog/transporter-son-chien-en-voiture-sans-tout-salir.html</loc>
+    <lastmod>2026-10-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
