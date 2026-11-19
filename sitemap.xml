@@ -104,7 +104,7 @@
   </url>
   <url>
     <loc>https://karnett.fr/blog/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -406,6 +406,12 @@
   <url>
     <loc>https://karnett.fr/blog/proteger-sa-banquette-arriere-pour-transporter-un-animal.html</loc>
     <lastmod>2026-11-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://karnett.fr/blog/nettoyer-sa-voiture-avant-de-la-revendre-pourquoi.html</loc>
+    <lastmod>2026-11-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
