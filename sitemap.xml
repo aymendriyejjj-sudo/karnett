@@ -104,7 +104,7 @@
   </url>
   <url>
     <loc>https://karnett.fr/blog/</loc>
-    <lastmod>2026-11-23</lastmod>
+    <lastmod>2026-11-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -418,6 +418,12 @@
   <url>
     <loc>https://karnett.fr/blog/nettoyage-interieur-avant-vente-ca-vaut-le-coup.html</loc>
     <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://karnett.fr/blog/photos-d-annonce-pourquoi-un-interieur-propre-fait-vendre.html</loc>
+    <lastmod>2026-11-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
